@@ -62,10 +62,6 @@ func (c Checker) Check(sourceUrl string) error {
 		}(item)
 	}
 	wg.Wait()
-	c.Logger.Debugf("Repository syncing is being starting")
-	if err = c.Repository.Sync(); err != nil {
-		return err
-	}
 	c.Logger.Debugf("Repository syncing has been finished successfully")
 	c.Logger.Infof("Parsing has been finished: %s ...", sourceUrl)
 	return nil
