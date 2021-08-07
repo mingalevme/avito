@@ -16,6 +16,8 @@ APP_NOTIFIER_TELEGRAM_CHAT_ID="MY_TELEGRAM_CHAT_ID" \
     ...
 ```
 
+It is recommended to do the first run with `APP_NOTIFIER_DRIVER=null`.
+
 Available notifier (production) drivers:
 - Telegram
 - Slack (TODO)
