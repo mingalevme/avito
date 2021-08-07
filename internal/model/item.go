@@ -13,6 +13,12 @@ type Item struct {
 }
 
 func (i Item) GetFormattedPrice() string {
-	a := accounting.Accounting{Symbol: "₽", Precision: 0, Thousand: ".", Decimal: ","}
+	a := accounting.Accounting{
+		Symbol:         "₽ ",
+		Precision:      0,
+		Thousand:       " ",
+		Decimal:        ",",
+		Format:         "%v%s",
+	}
 	return a.FormatMoney(i.Price)
 }

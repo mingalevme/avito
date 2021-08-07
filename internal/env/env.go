@@ -105,18 +105,23 @@ func (e *Env) Notifier() notifier.Notifier {
 		return e.notifier
 	}
 	driver := e.getEnv("NOTIFIER_DRIVER", "stdout")
-	if driver == "stdout" {
+	switch driver {
+	case "telegram":
+		token := e.requireEnv("NOTIFIER_TELEGRAM_TOKEN")
+		chatID := e.requireEnv("NOTIFIER_TELEGRAM_CHAT_ID")
+		e.notifier = notifier.NewTelegramNotifier(token, chatID, e.Logger())
+	case "stdout":
 		e.notifier = notifier.NewStdoutNotifier()
-	} else if driver == "null" {
-		e.notifier = notifier.NewNullNotifier()
-	} else if driver == "logger" {
+	case "logger":
 		if level, err := gologger.ParseLevel(e.getEnv("NOTIFIER_LOGGER_LEVEL", "info")); err != nil {
 			panic(err)
 		} else {
 			e.notifier = notifier.NewLoggerNotifier(e.Logger(), level)
 		}
-	} else {
-		panic("unsupported driver: " + driver)
+	case "null":
+		e.notifier = notifier.NewNullNotifier()
+	default:
+		panic(errors.Errorf("unsupported notifier driver: %s", driver))
 	}
 	return e.notifier
 }
