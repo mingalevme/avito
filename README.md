@@ -13,7 +13,7 @@ APP_NOTIFIER_TELEGRAM_CHAT_ID="MY_TELEGRAM_CHAT_ID" \
   ./avito check \
     "https://www.avito.ru/rossiya/bytovaya_elektronika?q=iphone+11" \
     "https://www.avito.ru/rossiya/telefony?q=iphone+12" \
-    "https"
+    ...
 ```
 
 Available notifier (production) drivers:
