@@ -34,7 +34,7 @@ APP_NOTIFIER_TELEGRAM_CHAT_ID="MY_TELEGRAM_CHAT_ID" \
 ```
 | INFO |
 | :--- |
-| **APP_** prefix in env vars name can be changed via **MINGALEVME_AVITO_ENV_NAMESPACE** env var. Log env vars name prefix can be changed via **MINGALEVME_AVITO_GOLOGGER_ENV_NAMESAPCE**/ |
+| **APP_** prefix in env vars name can be changed via **MINGALEVME_AVITO_ENV_NAMESPACE** env var. Log env vars name prefix can be changed via **MINGALEVME_AVITO_GOLOGGER_ENV_NAMESPACE** |
 
 | INFO |
 | :--- |

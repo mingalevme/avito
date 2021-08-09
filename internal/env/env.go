@@ -48,7 +48,7 @@ func (e *Env) Logger() gologger.Logger {
 		return e.logger
 	}
 	logger, err := gologger.Creator{
-		Prefix: GetEnv("MINGALEVME_AVITO_GOLOGGER_ENV_NAMESAPCE", e.namespace),
+		Prefix: GetEnv("MINGALEVME_AVITO_GOLOGGER_ENV_NAMESPACE", e.namespace),
 		Env:    e.env,
 	}.Create()
 	if err != nil {
