@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mingalevme/avito/internal/model"
-	gologger "github.com/mingalevme/gologger"
+	"github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -15,7 +15,7 @@ import (
 
 type FileRepository struct {
 	filename string
-	data     map[int]model.Item
+	storage  *InMemoryRepository
 	lock     sync.RWMutex
 	logger   gologger.Logger
 }
@@ -32,6 +32,7 @@ func NewFileRepository(filename string, logger gologger.Logger) (*FileRepository
 	r := &FileRepository{
 		filename: filename,
 		logger:   logger,
+		storage:  NewInMemoryRepository(),
 	}
 	if err = r.init(); err != nil {
 		return nil, err
@@ -40,41 +41,32 @@ func NewFileRepository(filename string, logger gologger.Logger) (*FileRepository
 }
 
 func (r *FileRepository) GetAll() ([]model.Item, error) {
-	r.lock.RLock()
-	defer r.lock.RUnlock()
-	items := make([]model.Item, len(r.data))
-	i := 0
-	for _, item := range r.data {
-		items[i] = item
-		i++
-	}
-	return items, nil
+	return r.storage.GetAll()
 }
 
 func (r *FileRepository) Get(id int) (model.Item, error) {
-	item, ok := r.data[id]
-	if !ok {
-		return model.Item{}, ErrNotFound
-	}
-	return item, nil
+	return r.storage.Get(id)
 }
 
 func (r *FileRepository) Has(id int) bool {
-	_, ok := r.data[id]
-	return ok
+	return r.storage.Has(id)
 }
 
 func (r *FileRepository) Add(item model.Item) error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-	r.data[item.ID] = item
-	return nil
+	return r.storage.Add(item)
+}
+
+func (r *FileRepository) Size() int {
+	return r.storage.Size()
 }
 
 func (r *FileRepository) Sync() error {
-	r.lock.Lock()
-	data, err := json.Marshal(r.data)
-	r.lock.Unlock()
+	if r.Size() == 0 {
+		r.lock.Lock()
+		defer r.lock.Unlock()
+		return os.Remove(r.filename)
+	}
+	data, err := json.Marshal(r.storage.GetData())
 	if err != nil {
 		return errors.Wrap(err, "error while marshalling data to json")
 	}
@@ -84,8 +76,7 @@ func (r *FileRepository) Sync() error {
 		return errors.Wrap(err, "error while creating proxy json file")
 	}
 	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
+		if err := f.Close(); err != nil {
 			r.logger.WithError(err).Errorf("error while closing proxy json file")
 		}
 	}(f)
@@ -107,19 +98,20 @@ func (r *FileRepository) Sync() error {
 }
 
 func (r *FileRepository) Clean() error {
-	if err := os.Remove(r.filename); err != nil {
-		panic(err)
-	}
-	return nil
+	return r.storage.Clean()
 }
 
 func (r *FileRepository) init() error {
-	if items, err := r.read(); err != nil {
-		return err
-	} else {
-		r.data = items
-		return nil
+	data, err := r.read()
+	if err != nil {
+		return errors.Wrap(err, "file repository: error while reading data from file while initializing")
 	}
+	for _, item := range data {
+		if err := r.storage.Add(item); err != nil {
+			return errors.Wrap(err, "file repository: error adding item while initializing")
+		}
+	}
+	return nil
 }
 
 func (r *FileRepository) read() (map[int]model.Item, error) {

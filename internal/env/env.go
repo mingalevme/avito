@@ -8,12 +8,13 @@ import (
 	"github.com/mingalevme/avito/internal/service"
 	"github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
+	"net/http"
 	"os"
 	"strings"
 )
 
 type Env struct {
-	prefix             string
+	namespace          string
 	env                map[string]string
 	logger             gologger.Logger
 	repository         repository.Repository
@@ -23,14 +24,14 @@ type Env struct {
 	checker            *service.Checker
 }
 
-func New(prefix string, env map[string]string) *Env {
+func New(namespace string, env map[string]string) *Env {
 	clone := make(map[string]string, len(env))
 	for k, v := range env {
 		clone[k] = v
 	}
 	return &Env{
-		prefix: prefix,
-		env:    clone,
+		namespace: namespace,
+		env:       clone,
 	}
 }
 
@@ -47,7 +48,7 @@ func (e *Env) Logger() gologger.Logger {
 		return e.logger
 	}
 	logger, err := gologger.Creator{
-		Prefix: e.prefix,
+		Prefix: GetEnv("MINGALEVME_AVITO_GOLOGGER_ENV_NAMESAPCE", e.namespace),
 		Env:    e.env,
 	}.Create()
 	if err != nil {
@@ -83,16 +84,11 @@ func (e *Env) Repository() repository.Repository {
 	if e.repository != nil {
 		return e.repository
 	}
-	driver := e.getEnv("PERSISTENCE_DRIVER", "in-memory")
+	driver := e.getEnv("PERSISTENCE_DRIVER", "file")
 	e.Logger().Debugf("Persistence: using driver: " + driver)
 	if driver == "file" {
-		filename := e.requireEnv("PERSISTENCE_FILE_FILENAME")
-		if r, err := repository.NewFileRepository(filename, e.Logger()); err != nil {
-			panic(err)
-		} else {
-			e.repository = r
-			return e.repository
-		}
+		e.repository = e.newFileRepository()
+		return e.repository
 	} else if driver == "in-memory" {
 		e.repository = repository.NewInMemoryRepository()
 		return e.repository
@@ -100,34 +96,79 @@ func (e *Env) Repository() repository.Repository {
 	panic(errors.New("unknown persistence driver: " + driver))
 }
 
+func (e *Env) getFileRepositoryFilename() string {
+	filename := e.getEnv("PERSISTENCE_FILE_FILENAME", "")
+	if filename != "" {
+		return filename
+	}
+	if homeDir, err := os.UserHomeDir(); err != nil {
+		panic(errors.Wrap(err, "error while resolving home dir"))
+	} else {
+		return fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), "avito.json")
+	}
+}
+
+func (e *Env) newFileRepository() *repository.FileRepository {
+	f := e.getFileRepositoryFilename()
+	if r, err := repository.NewFileRepository(f, e.Logger()); err != nil {
+		panic(err)
+	} else {
+		return r
+	}
+}
+
 func (e *Env) Notifier() notifier.Notifier {
 	if e.notifier != nil {
 		return e.notifier
 	}
-	driver := e.getEnv("NOTIFIER_DRIVER", "stdout")
-	switch driver {
+	e.notifier = e.newNotifierChannel(e.getEnv("NOTIFIER_CHANNEL", "stack"))
+	return e.notifier
+}
+
+func (e *Env) newNotifierChannel(channel string) notifier.Notifier {
+	switch channel {
+	case "stack":
+		return e.newStackNotifier()
 	case "telegram":
 		token := e.requireEnv("NOTIFIER_TELEGRAM_TOKEN")
 		chatID := e.requireEnv("NOTIFIER_TELEGRAM_CHAT_ID")
-		e.notifier = notifier.NewTelegramNotifier(token, chatID, e.Logger())
+		return notifier.NewTelegramNotifier(token, chatID, e.Logger())
+	case "slack":
+		webhookURL := e.requireEnv("NOTIFIER_SLACK_WEBHOOK_URL")
+		return notifier.NewSlackNotifier(http.DefaultClient, webhookURL, e.Logger())
 	case "stdout":
-		e.notifier = notifier.NewStdoutNotifier()
+		return notifier.NewStdoutNotifier()
 	case "logger":
 		if level, err := gologger.ParseLevel(e.getEnv("NOTIFIER_LOGGER_LEVEL", "info")); err != nil {
 			panic(err)
 		} else {
-			e.notifier = notifier.NewLoggerNotifier(e.Logger(), level)
+			return notifier.NewLoggerNotifier(e.Logger(), level)
 		}
 	case "null":
-		e.notifier = notifier.NewNullNotifier()
+		return notifier.NewNullNotifier()
 	default:
-		panic(errors.Errorf("unsupported notifier driver: %s", driver))
+		panic(errors.Errorf("unsupported notifier channel: %s", channel))
 	}
-	return e.notifier
+}
+
+func (e *Env) newStackNotifier() *notifier.StackNotifier {
+	stack := notifier.NewStackNotifier(e.Logger())
+	channels := strings.Split(e.getEnv("NOTIFIER_STACK_CHANNELS", "stdout"), ",")
+	for _, channel := range channels {
+		channel = strings.TrimSpace(channel)
+		if channel == "" {
+			continue
+		}
+		if channel == "stack" {
+			panic(errors.Errorf("stack channel recursion"))
+		}
+		stack.AddNotifier(e.newNotifierChannel(channel))
+	}
+	return stack
 }
 
 func (e *Env) getEnv(key string, def string) string {
-	key = e.prefix + key
+	key = e.namespace + key
 	if val, ok := e.env[key]; ok {
 		return val
 	} else {
@@ -136,7 +177,7 @@ func (e *Env) getEnv(key string, def string) string {
 }
 
 func (e *Env) requireEnv(key string) string {
-	key = e.prefix + key
+	key = e.namespace + key
 	if val, ok := e.env[key]; ok {
 		return val
 	} else {
@@ -151,4 +192,11 @@ func GetOSEnvMap() map[string]string {
 		m[variable[0]] = variable[1]
 	}
 	return m
+}
+
+func GetEnv(key string, def string) string {
+	if v, ok := os.LookupEnv(key); ok {
+		return v
+	}
+	return def
 }

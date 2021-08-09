@@ -2,22 +2,26 @@ package repository
 
 import (
 	"github.com/mingalevme/avito/internal/model"
+	"sync"
 )
 
 type InMemoryRepository struct {
-	Data map[int]model.Item
+	data map[int]model.Item
+	lock sync.RWMutex
 }
 
 func NewInMemoryRepository() *InMemoryRepository {
 	return &InMemoryRepository{
-		Data: map[int]model.Item{},
+		data: map[int]model.Item{},
 	}
 }
 
 func (r *InMemoryRepository) GetAll() ([]model.Item, error) {
-	items := make([]model.Item, len(r.Data))
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	items := make([]model.Item, len(r.data))
 	i := 0
-	for _, item := range r.Data {
+	for _, item := range r.data {
 		items[i] = item
 		i++
 	}
@@ -25,7 +29,9 @@ func (r *InMemoryRepository) GetAll() ([]model.Item, error) {
 }
 
 func (r *InMemoryRepository) Get(id int) (model.Item, error) {
-	item, ok := r.Data[id]
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	item, ok := r.data[id]
 	if !ok {
 		return model.Item{}, ErrNotFound
 	}
@@ -33,13 +39,23 @@ func (r *InMemoryRepository) Get(id int) (model.Item, error) {
 }
 
 func (r *InMemoryRepository) Has(id int) bool {
-	_, ok := r.Data[id]
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	_, ok := r.data[id]
 	return ok
 }
 
 func (r *InMemoryRepository) Add(item model.Item) error {
-	r.Data[item.ID] = item
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.data[item.ID] = item
 	return nil
+}
+
+func (r *InMemoryRepository) Size() int {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return len(r.data)
 }
 
 func (r *InMemoryRepository) Sync() error {
@@ -47,6 +63,18 @@ func (r *InMemoryRepository) Sync() error {
 }
 
 func (r *InMemoryRepository) Clean() error {
-	r.Data = map[int]model.Item{}
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.data = map[int]model.Item{}
 	return nil
+}
+
+func (r *InMemoryRepository) GetData() map[int]model.Item {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	items := make(map[int]model.Item)
+	for id, item := range r.data {
+		items[id] = item
+	}
+	return items
 }

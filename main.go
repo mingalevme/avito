@@ -11,7 +11,8 @@ var CLI struct{
 }
 
 func main() {
-	e := env.New("APP_", env.GetOSEnvMap())
+	namespace := env.GetEnv("MINGALEVME_AVITO_ENV_NAMESPACE", "APP_")
+	e := env.New(namespace, env.GetOSEnvMap())
 	ctx := kong.Parse(&CLI)
 	_ = ctx.Run(e)
 }
