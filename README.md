@@ -38,7 +38,7 @@ APP_NOTIFIER_TELEGRAM_CHAT_ID="MY_TELEGRAM_CHAT_ID" \
 
 | INFO |
 | :--- |
-| It is recommended to do the first run with `APP_NOTIFIER_CHANNEL=null`. |
+| It is recommended to do the first run with `APP_NOTIFIER_CHANNEL=null` |
 
 ## Repository drivers
 Default is **file** (**$HOME/avito.json**).
