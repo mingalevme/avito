@@ -3,7 +3,7 @@ package notifier
 import (
 	"context"
 	"fmt"
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	"github.com/mingalevme/gologger"
 	"github.com/slack-go/slack"
 	"net/http"

@@ -2,10 +2,10 @@ package env
 
 import (
 	"fmt"
-	"github.com/mingalevme/avito/internal/notifier"
-	"github.com/mingalevme/avito/internal/parser"
-	"github.com/mingalevme/avito/internal/repository"
-	"github.com/mingalevme/avito/internal/service"
+	notifier2 "github.com/mingalevme/avito/pkg/notifier"
+	parser2 "github.com/mingalevme/avito/pkg/parser"
+	repository2 "github.com/mingalevme/avito/pkg/repository"
+	"github.com/mingalevme/avito/pkg/service"
 	"github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"net/http"
@@ -17,10 +17,10 @@ type Env struct {
 	namespace          string
 	env                map[string]string
 	logger             gologger.Logger
-	repository         repository.Repository
-	notifier           notifier.Notifier
-	parser             *parser.Parser
-	htmlDocumentGetter parser.HTMLDocumentGetter
+	repository         repository2.Repository
+	notifier           notifier2.Notifier
+	parser             *parser2.Parser
+	htmlDocumentGetter parser2.HTMLDocumentGetter
 	checker            *service.Checker
 }
 
@@ -59,28 +59,28 @@ func (e *Env) Logger() gologger.Logger {
 	return e.logger
 }
 
-func (e *Env) Parser() *parser.Parser {
+func (e *Env) Parser() *parser2.Parser {
 	if e.parser != nil {
 		return e.parser
 	}
-	e.parser = &parser.Parser{
+	e.parser = &parser2.Parser{
 		HTMLDocumentGetter: e.HTMLDocumentGetter(),
 		Logger:             e.Logger(),
 	}
 	return e.parser
 }
 
-func (e *Env) HTMLDocumentGetter() parser.HTMLDocumentGetter {
+func (e *Env) HTMLDocumentGetter() parser2.HTMLDocumentGetter {
 	if e.htmlDocumentGetter != nil {
 		return e.htmlDocumentGetter
 	}
-	e.htmlDocumentGetter = parser.NetHTMLDocumentGetter{
+	e.htmlDocumentGetter = parser2.NetHTMLDocumentGetter{
 		Logger: e.Logger(),
 	}
 	return e.htmlDocumentGetter
 }
 
-func (e *Env) Repository() repository.Repository {
+func (e *Env) Repository() repository2.Repository {
 	if e.repository != nil {
 		return e.repository
 	}
@@ -90,7 +90,7 @@ func (e *Env) Repository() repository.Repository {
 		e.repository = e.newFileRepository()
 		return e.repository
 	} else if driver == "in-memory" {
-		e.repository = repository.NewInMemoryRepository()
+		e.repository = repository2.NewInMemoryRepository()
 		return e.repository
 	}
 	panic(errors.New("unknown persistence driver: " + driver))
@@ -108,17 +108,17 @@ func (e *Env) getFileRepositoryFilename() string {
 	}
 }
 
-func (e *Env) newFileRepository() *repository.FileRepository {
+func (e *Env) newFileRepository() *repository2.FileRepository {
 	f := e.getFileRepositoryFilename()
 	e.Logger().Debugf("Persistence: using file: " + f)
-	if r, err := repository.NewFileRepository(f, e.Logger()); err != nil {
+	if r, err := repository2.NewFileRepository(f, e.Logger()); err != nil {
 		panic(err)
 	} else {
 		return r
 	}
 }
 
-func (e *Env) Notifier() notifier.Notifier {
+func (e *Env) Notifier() notifier2.Notifier {
 	if e.notifier != nil {
 		return e.notifier
 	}
@@ -126,34 +126,34 @@ func (e *Env) Notifier() notifier.Notifier {
 	return e.notifier
 }
 
-func (e *Env) newNotifierChannel(channel string) notifier.Notifier {
+func (e *Env) newNotifierChannel(channel string) notifier2.Notifier {
 	switch channel {
 	case "stack":
 		return e.newStackNotifier()
 	case "telegram":
 		token := e.requireEnv("NOTIFIER_TELEGRAM_TOKEN")
 		chatID := e.requireEnv("NOTIFIER_TELEGRAM_CHAT_ID")
-		return notifier.NewTelegramNotifier(token, chatID, e.Logger())
+		return notifier2.NewTelegramNotifier(token, chatID, e.Logger())
 	case "slack":
 		webhookURL := e.requireEnv("NOTIFIER_SLACK_WEBHOOK_URL")
-		return notifier.NewSlackNotifier(http.DefaultClient, webhookURL, e.Logger())
+		return notifier2.NewSlackNotifier(http.DefaultClient, webhookURL, e.Logger())
 	case "stdout":
-		return notifier.NewStdoutNotifier()
+		return notifier2.NewStdoutNotifier()
 	case "logger":
 		if level, err := gologger.ParseLevel(e.getEnv("NOTIFIER_LOGGER_LEVEL", "info")); err != nil {
 			panic(err)
 		} else {
-			return notifier.NewLoggerNotifier(e.Logger(), level)
+			return notifier2.NewLoggerNotifier(e.Logger(), level)
 		}
 	case "null":
-		return notifier.NewNullNotifier()
+		return notifier2.NewNullNotifier()
 	default:
 		panic(errors.Errorf("unsupported notifier channel: %s", channel))
 	}
 }
 
-func (e *Env) newStackNotifier() *notifier.StackNotifier {
-	stack := notifier.NewStackNotifier(e.Logger())
+func (e *Env) newStackNotifier() *notifier2.StackNotifier {
+	stack := notifier2.NewStackNotifier(e.Logger())
 	channels := strings.Split(e.getEnv("NOTIFIER_STACK_CHANNELS", "stdout"), ",")
 	for _, channel := range channels {
 		channel = strings.TrimSpace(channel)

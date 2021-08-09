@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	"github.com/mingalevme/gologger"
 	"github.com/stretchr/testify/assert"
 	"net/http"

@@ -1,11 +1,13 @@
 .idea/
+avito
+avito.json
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-avito
 
 # Test binary, built with `go test -c`
 *.test

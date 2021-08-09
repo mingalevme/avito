@@ -2,7 +2,7 @@ package notifier
 
 import (
 	"fmt"
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	"github.com/mingalevme/gologger"
 	"io"
 	"io/ioutil"

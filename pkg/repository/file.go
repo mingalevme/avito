@@ -3,7 +3,7 @@ package repository
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	"github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"io/ioutil"

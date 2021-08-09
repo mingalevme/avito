@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	"sync"
 )
 

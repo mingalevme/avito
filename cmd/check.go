@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/mingalevme/avito/internal/env"
+	"github.com/mingalevme/avito/pkg/env"
 	"github.com/pkg/errors"
 	"sync"
 )

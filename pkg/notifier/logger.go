@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	log "github.com/mingalevme/gologger"
 )
 

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 )
 
 var ErrNotFound = errors.New("item not found")

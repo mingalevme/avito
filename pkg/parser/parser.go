@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mingalevme/avito/internal/model"
+	"github.com/mingalevme/avito/pkg/model"
 	log "github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"net/url"

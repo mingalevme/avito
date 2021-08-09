@@ -2,10 +2,10 @@ package service
 
 import (
 	"fmt"
-	"github.com/mingalevme/avito/internal/model"
-	"github.com/mingalevme/avito/internal/notifier"
-	"github.com/mingalevme/avito/internal/parser"
-	"github.com/mingalevme/avito/internal/repository"
+	"github.com/mingalevme/avito/pkg/model"
+	"github.com/mingalevme/avito/pkg/notifier"
+	"github.com/mingalevme/avito/pkg/parser"
+	"github.com/mingalevme/avito/pkg/repository"
 	log "github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"sync"

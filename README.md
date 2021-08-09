@@ -8,10 +8,9 @@ Simple Avito new search items notifier
 
 ```shell
 docker build --target avito -t avito .
-touch /tmp/avito.json
 docker run --rm \
-  -v "/tmp/avito.json:/tmp/avito.json" \
-  -e "APP_PERSISTENCE_FILE_FILENAME=/tmp/avito.json" \
+  -v "$(pwd):/var/lib/avito" \
+  -e "APP_PERSISTENCE_FILE_FILENAME=/var/lib/avito/avito.json" \
   -e "APP_LOG_STDOUT_LEVEL=error" \
   avito check \
     "https://www.avito.ru/rossiya/bytovaya_elektronika?q=iphone+11" \

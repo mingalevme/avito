@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/alecthomas/kong"
 	"github.com/mingalevme/avito/cmd"
-	"github.com/mingalevme/avito/internal/env"
+	"github.com/mingalevme/avito/pkg/env"
 )
 
 var CLI struct{
