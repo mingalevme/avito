@@ -6,15 +6,51 @@ Simple Avito new search items notifier
 
 ### Docker
 
+#### build
+
 ```shell
 docker build --target avito -t avito .
+```
+
+#### help
+
+```shell
+docker run --rm avito check --help
+```
+
+#### Read from plain urls
+
+```shell
 docker run --rm \
   -v "$(pwd):/var/lib/avito" \
   -e "APP_PERSISTENCE_FILE_FILENAME=/var/lib/avito/avito.json" \
   -e "APP_LOG_STDOUT_LEVEL=error" \
   avito check \
+    -f /var/lib/avito/urls.txt
     "https://www.avito.ru/rossiya/bytovaya_elektronika?q=iphone+11" \
     "https://www.avito.ru/rossiya/telefony?q=iphone+12"
+```
+
+#### Read from files
+
+```shell
+docker run --rm \
+  -v "$(pwd):/var/lib/avito" \
+  -e "APP_PERSISTENCE_FILE_FILENAME=/var/lib/avito/avito.json" \
+  -e "APP_LOG_STDOUT_LEVEL=error" \
+  avito check \
+    -f /var/lib/avito/urls1.txt \
+    -f /var/lib/avito/urls2.txt
+```
+
+#### Read from Stdin
+
+```shell
+echo "https://www.avito.ru/rossiya/telefony?q=iphone+12" | docker run --rm -i \
+  -v "$(pwd):/var/lib/avito" \
+  -e "APP_PERSISTENCE_FILE_FILENAME=/var/lib/avito/avito.json" \
+  -e "APP_LOG_STDOUT_LEVEL=error" \
+  avito check
 ```
 
 ### Source 
