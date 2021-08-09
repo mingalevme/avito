@@ -1,6 +1,8 @@
 .idea/
 avito
 avito.json
+bin/avito_arm64
+bin/avito_darwin
 
 # Binaries for programs and plugins
 *.exe
