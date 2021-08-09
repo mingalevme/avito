@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"github.com/mingalevme/avito/pkg/env"
+	"github.com/mingalevme/avito/pkg/parser"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"sync"
 )
@@ -15,6 +17,11 @@ type CheckCmd struct {
 }
 
 func (r *CheckCmd) Run(e *env.Env) error {
+	initialingUrl := "https://www.avito.ru/rossiya"
+	e.Logger().WithField("url", initialingUrl).Debugf("Initializing HTTP Client")
+	if err := r.initHTTPClient(e.HTTPClient(), initialingUrl); err != nil {
+		panic(err)
+	}
 	checker := e.Checker()
 	var wg sync.WaitGroup
 	urls := append(r.URLS, r.readFiles(e)...)
@@ -81,4 +88,16 @@ func (r *CheckCmd) splitFileInputToURLS(input string) []string {
 		urls = append(urls, url)
 	}
 	return urls
+}
+
+func (r *CheckCmd) initHTTPClient(httpClient *http.Client, url string) error {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		panic(errors.Wrap(err, "error while creating request object"))
+	}
+	parser.SetRequestHeader(req)
+	if _, err = httpClient.Do(req); err != nil {
+		return err
+	}
+	return nil
 }

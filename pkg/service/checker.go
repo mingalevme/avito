@@ -31,7 +31,7 @@ func (c Checker) Check(sourceUrl string) error {
 	c.Logger.Infof("Starting parsing: %s ...", sourceUrl)
 	items, err := c.Parser.Parse(sourceUrl)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("error while parsing url: %s", sourceUrl))
+		return errors.Wrap(err, fmt.Sprintf("error while parsing data from url: %s", sourceUrl))
 	}
 	if len(items) == 0 {
 		return fmt.Errorf("empty result while parsing url: %s", sourceUrl)

@@ -3,6 +3,7 @@ package parser
 import (
 	log "github.com/mingalevme/gologger"
 	"github.com/stretchr/testify/assert"
+	"net/http"
 	"testing"
 )
 
@@ -11,6 +12,7 @@ func TestParser(t *testing.T) {
 	url := "https://www.avito.ru/rossiya?q=iPhone"
 	p := Parser{
 		HTMLDocumentGetter: NetHTMLDocumentGetter{
+			HttpClient: http.DefaultClient,
 			Logger: logger,
 		},
 		Logger: logger,

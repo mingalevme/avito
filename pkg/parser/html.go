@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	log "github.com/mingalevme/gologger"
+	"github.com/mingalevme/gologger"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
@@ -15,7 +15,8 @@ type HTMLDocumentGetter interface {
 }
 
 type NetHTMLDocumentGetter struct {
-	Logger log.Logger
+	HttpClient *http.Client
+	Logger     gologger.Logger
 }
 
 func (g NetHTMLDocumentGetter) Get(url string) (*goquery.Document, error) {
@@ -23,11 +24,8 @@ func (g NetHTMLDocumentGetter) Get(url string) (*goquery.Document, error) {
 	if err != nil {
 		panic(errors.Wrap(err, "error while creating request object"))
 	}
-	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36")
-	req.Header.Add("Referer", "https://www.avito.ru/")
-	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-	req.Header.Add("Accept-Language", "ru,en;q=0.9,en-US;q=0.8")
-	resp, err := http.DefaultClient.Do(req)
+	SetRequestHeader(req)
+	resp, err := g.HttpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("error while requesting remote content: %s", url))
 	}
@@ -54,4 +52,11 @@ type StaticHTMLDocumentGetter struct {
 func (g StaticHTMLDocumentGetter) Get(url string) (*goquery.Document, error) {
 	r := strings.NewReader(g.Body)
 	return goquery.NewDocumentFromReader(r)
+}
+
+func SetRequestHeader(req *http.Request) {
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36")
+	req.Header.Add("Referer", "https://www.avito.ru/")
+	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+	req.Header.Add("Accept-Language", "ru,en;q=0.9,en-US;q=0.8")
 }
