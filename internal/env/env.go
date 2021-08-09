@@ -110,6 +110,7 @@ func (e *Env) getFileRepositoryFilename() string {
 
 func (e *Env) newFileRepository() *repository.FileRepository {
 	f := e.getFileRepositoryFilename()
+	e.Logger().Debugf("Persistence: using file: " + f)
 	if r, err := repository.NewFileRepository(f, e.Logger()); err != nil {
 		panic(err)
 	} else {

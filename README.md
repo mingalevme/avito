@@ -2,7 +2,24 @@
 
 Simple Avito new search items notifier
 
-Example with 
+## Examples
+
+### Docker
+
+```shell
+docker build --target avito -t avito .
+touch /tmp/avito.json
+docker run --rm \
+  -v "/tmp/avito.json:/tmp/avito.json" \
+  -e "APP_PERSISTENCE_FILE_FILENAME=/tmp/avito.json" \
+  -e "APP_LOG_STDOUT_LEVEL=error" \
+  avito check \
+    "https://www.avito.ru/rossiya/bytovaya_elektronika?q=iphone+11" \
+    "https://www.avito.ru/rossiya/telefony?q=iphone+12"
+```
+
+### Source 
+
 ```shell
 go build .
 APP_PERSISTENCE_DRIVER=file \
@@ -13,8 +30,7 @@ APP_NOTIFIER_TELEGRAM_TOKEN="MY_TELEGRAM_BOT_TOKEN" \
 APP_NOTIFIER_TELEGRAM_CHAT_ID="MY_TELEGRAM_CHAT_ID" \
   ./avito check \
     "https://www.avito.ru/rossiya/bytovaya_elektronika?q=iphone+11" \
-    "https://www.avito.ru/rossiya/telefony?q=iphone+12" \
-    ...
+    "https://www.avito.ru/rossiya/telefony?q=iphone+12"
 ```
 | INFO |
 | :--- |
