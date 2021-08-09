@@ -75,7 +75,7 @@ func (r *CheckCmd) splitFileInputToURLS(input string) []string {
 	urls := make([]string, 0)
 	for _, url := range strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n") {
 		url = strings.TrimSpace(url)
-		if url == "" {
+		if url == "" || strings.HasPrefix(url, "#") {
 			continue
 		}
 		urls = append(urls, url)
